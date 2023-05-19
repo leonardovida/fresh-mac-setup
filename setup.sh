@@ -36,9 +36,12 @@ brew install --cask rectangle
 brew install --cask raycast
 brew install docker
 brew install git-lfs
+brew install --cask nordvpn
 brew install --cask docker
 brew install docker-compose
 brew install --cask warp
+brew install --cask todoist
+brew install pipx
 brew install --cask betterdisplay
 # Development apps
 brew install terraform pyenv scala java apache-spark vscodium pyenv-virtualenv gh railway
