@@ -27,6 +27,50 @@ brew update && brew upgrade
 brew doctor
 brew tap homebrew/cask-versions
 
+# Tap additional repos
+tap "homebrew/bundle"
+tap "homebrew/cask"
+tap "homebrew/cask-fonts"
+tap "homebrew/cask-versions"
+tap "homebrew/core"
+tap "homebrew/services"
+
+# System
+brew "mas"
+brew "curl"
+brew "wget"
+brew "git"
+brew "vim"
+brew "openssl"
+brew "coreutils"
+brew "moreutils"
+brew "findutils"
+brew "binutils"
+brew "rename"
+brew "gnu-sed"
+brew "gnu-tar"
+brew "gawk"
+brew "gnutls"
+brew "gnu-indent"
+brew "gnu-getopt"
+brew "tree"
+brew "htop"
+brew "pidof"
+brew "pstree"
+brew "grep"
+brew "openssh"
+brew "rsync"
+brew "ssh-copy-id"
+brew "screen"
+brew "gmp"
+brew "nmap"
+brew "socat"
+brew "rlwrap"
+brew "dnstracer"
+
+# Install apps from the Mac App Store
+mas "Slack", id: 803453959
+
 # MacOS livable
 brew install openssl readline sqlite3 xz zlib
 brew install git zsh authy caffeine mackup whatsapp spotify discord starship transmission vlc
