@@ -42,6 +42,7 @@ brew install docker-compose
 brew install --cask warp
 brew install --cask todoist
 brew install pipx
+brew install --cask dash
 brew install --cask betterdisplay
 # Development apps
 brew install terraform pyenv scala java apache-spark vscodium pyenv-virtualenv gh railway
