@@ -48,12 +48,6 @@ brew install microsoft-edge
 brew install --cask kaleidoscope
 brew install --cask krisp
 
-echo "--> Creating config file for Mackup .."
-cat <<EOF >~/.mackup.cfg
-[storage]
-engine = icloud
-EOF
-
 # Git configure
 git config --global user.name "Leonardo Vida"
 git config --global user.email "lleonardovida@gmail.com"
@@ -64,10 +58,8 @@ pyenv install 3.11
 pyenv install 3.12
 
 # ZSH
-git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
 # source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh in .zshrc
-
-# Oh my zsh
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 git clone https://github.com/zsh-users/zsh-completions ${ZSH_CUSTOM:=~/.oh-my-zsh/custom}/plugins/zsh-completions
@@ -79,6 +71,19 @@ defaults write com.apple.finder _FXShowPosixPathInTitle -bool YES;killall Finder
 defaults write com.apple.Finder AppleShowAllFiles true;killall Finder
 
 ### Mackup
+echo -n "--> Do you want to Create a config file for Mackup? (y/n)"
+read answer
+
+if [ "$answer" != "${answer#[Yy]}" ] ;then
+    echo "--> Creating config file for Mackup .."
+    cat <<EOF >~/.mackup.cfg
+    [storage]
+    engine = icloud
+    EOF
+else
+    echo "--> Skipping Mackup restore .."
+fi
+
 echo -n "--> Do you want to restore your config files and settings using Mackup? (y/n)"
 read answer
 
