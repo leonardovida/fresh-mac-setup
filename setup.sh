@@ -1,97 +1,112 @@
-#!/bin/sh
-# Initial MacBook installation, configuration and restoration of backed up settings (done with Mackup)
+#!/bin/bash
+# Initial MacBook setup: installation, configuration, and restoration of backed-up settings using Mackup
 
-# Exit immediately if a command exits with a non-zero status
-set -e
+set -euo pipefail
 
-# user request to install or not brew
-echo -n "--> Do you want to install Homebrew? (y/n)"
-read answer
+LOG_FILE="./setup.log"
 
-if [ "$answer" != "${answer#[Yy]}" ] ;then
-    echo "--> Installing Homebrew .."
+log() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
+}
 
+install_homebrew() {
+    log "Starting Homebrew installation..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-    echo 'eval $(/opt/homebrew/bin/brew shellenv)' >> /Users/leonardovida/.zprofile
-    eval $(/opt/homebrew/bin/brew shellenv)
-else
-    echo "--> Skipping Homebrew installation .."
-    exit 1
-fi
+    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+    log "Homebrew installation completed."
+}
 
-# Update & fix Homebrew
-brew update && brew upgrade
-brew doctor
-brew tap homebrew/cask-versions
+update_brew() {
+    log "Updating Homebrew..."
+    brew update && brew upgrade
+    brew doctor
+    brew tap homebrew/cask-versions
+    log "Homebrew updated and tapped."
+}
 
-# MacOS livable
-brew install openssl readline sqlite3 xz zlib
-brew install git zsh authy caffeine mackup whatsapp spotify discord starship transmission vlc
-brew install --cask rectangle
-brew install --cask raycast
-brew install docker
-brew install git-lfs
-brew install --cask docker
-brew install docker-compose
-brew install --cask warp
-brew install --cask betterdisplay
-# Development apps
-brew install terraform pyenv scala java apache-spark vscodium pyenv-virtualenv gh railway
-brew install pre-commit terraform-docs tflint tfsec checkov terrascan infracost tfupdate minamijoyo/hcledit/hcledit jq
-brew install zsh-syntax-highlighting
-brew install --cask hyper
-# Additional apps
-brew install zurawiki/brews/gptcommit
-brew install --cask notion
-brew install --cask tableplus
-brew install microsoft-edge
-brew install --cask kaleidoscope
-brew install --cask krisp
+install_packages() {
+    log "Installing brew formulae..."
+    while read -r formula; do
+        brew install "$formula" || log "Failed to install $formula"
+    done < brew_packages.txt
 
-# Git configure
-git config --global user.name "Leonardo Vida"
-git config --global user.email "lleonardovida@gmail.com"
+    log "Installing brew casks..."
+    while read -r cask; do
+        brew install --cask "$cask" || log "Failed to install $cask"
+    done < brew_casks.txt
 
-# Install python versions
-pyenv install 3.10
-pyenv install 3.11
-pyenv install 3.12
+    brew cleanup
+    log "Package installation complete."
+}
 
-# ZSH
-git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-# source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh in .zshrc
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
-git clone https://github.com/zsh-users/zsh-completions ${ZSH_CUSTOM:=~/.oh-my-zsh/custom}/plugins/zsh-completions
-git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+configure_git() {
+    log "Configuring Git..."
+    git config --global user.name "Leonardo Vida"
+    git config --global user.email "lleonardovida@gmail.com"
+    log "Git configured."
+}
 
-# show directory path in Finder titlebar
-echo "--> Showing directory pahh in Finder titlebar.." 
-defaults write com.apple.finder _FXShowPosixPathInTitle -bool YES;killall Finder
-defaults write com.apple.Finder AppleShowAllFiles true;killall Finder
+setup_zsh() {
+    log "Setting up Zsh and Oh My Zsh..."
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
+    git clone https://github.com/zsh-users/zsh-autosuggestions "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
+    git clone https://github.com/zsh-users/zsh-completions "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-completions"
+    log "Zsh setup complete."
+}
 
-### Mackup
-echo -n "--> Do you want to Create a config file for Mackup? (y/n)"
-read answer
+configure_finder() {
+    log "Configuring Finder settings..."
+    defaults write com.apple.finder _FXShowPosixPathInTitle -bool YES
+    defaults write com.apple.finder AppleShowAllFiles -bool TRUE
+    killall Finder
+    log "Finder configured."
+}
 
-if [ "$answer" != "${answer#[Yy]}" ] ;then
-    echo "--> Creating config file for Mackup .."
-    cat <<EOF >~/.mackup.cfg
-    [storage]
-    engine = icloud
-    EOF
-else
-    echo "--> Skipping Mackup restore .."
-fi
+setup_mackup() {
+    log "Mackup configuration prompted."
+    read -rp "--> Do you want to create a config file for Mackup? (y/n): " answer
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+        log "Creating Mackup config file..."
+        cat <<EOF >"$HOME/.mackup.cfg"
+[storage]
+engine = icloud
+EOF
+        log "Mackup config file created."
+    else
+        log "Skipping Mackup config file creation."
+    fi
 
-echo -n "--> Do you want to restore your config files and settings using Mackup? (y/n)"
-read answer
+    read -rp "--> Do you want to restore your config files and settings using Mackup? (y/n): " answer
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+        log "Restoring settings via Mackup..."
+        mackup restore || log "Mackup restore failed."
+        log "Mackup restoration complete."
+    else
+        log "Skipping Mackup restoration."
+    fi
+}
 
-if [ "$answer" != "${answer#[Yy]}" ] ;then
-    echo "--> Restoring settings via Mackup (iCloud) .." 
-    mackup restore
-else
-    echo "--> Skipping Mackup restore .."
-fi
+main() {
+    log "Setup script started."
 
-echo "--> JOB's DONE !!"
+    read -rp "--> Do you want to install Homebrew? (y/n): " answer
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+        install_homebrew
+        update_brew
+    else
+        log "Homebrew installation skipped."
+        exit 0
+    fi
+
+    install_packages
+    configure_git
+    setup_zsh
+    configure_finder
+    setup_mackup
+
+    log "--> JOB'S DONE !!"
+}
+
+main

@@ -1,0 +1,16 @@
+1password-cli
+authy
+betterdisplay
+caffeine
+discord
+kaleidoscope
+next
+notion
+rectangle
+slack
+spotify
+tableplus
+transmission
+visual-studio-code
+vlc
+whatsapp
